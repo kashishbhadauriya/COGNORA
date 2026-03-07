@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMind AI — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #090d1a;
+      --surface: #0f1629;
+      --border: rgba(99, 179, 237, 0.12);
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    html, body {
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(56,189,248,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(129,140,248,0.07) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(80px);
+      pointer-events: none; z-index: 0;
+      animation: pulse 6s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 400px; height: 400px; background: rgba(56,189,248,0.06); top: -100px; left: -100px; }
+    .orb-2 { width: 350px; height: 350px; background: rgba(129,140,248,0.06); bottom: -80px; right: -80px; animation-delay: -3s; }
+
+    @keyframes pulse {
+      from { opacity: 0.5; transform: scale(1); }
+      to   { opacity: 1;   transform: scale(1.1); }
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 440px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      justify-content: center; margin-bottom: 36px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 18px; letter-spacing: -0.5px;
+    }
+    .brand-name span { color: var(--accent); }
+
+    .form-header { text-align: center; margin-bottom: 36px; }
+    .form-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 700;
+      letter-spacing: -1px; margin-bottom: 8px;
+    }
+    .form-header p { font-size: 14px; color: var(--muted); font-weight: 300; }
+    .form-header p a { color: var(--accent); text-decoration: none; font-weight: 400; }
+    .form-header p a:hover { text-decoration: underline; }
+
+    .form-group {
+      margin-bottom: 16px;
+      opacity: 0; transform: translateY(10px);
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .form-group:nth-child(1) { animation-delay: 0.2s; }
+    .form-group:nth-child(2) { animation-delay: 0.3s; }
+
+    .input-wrap { position: relative; }
+
+    .input-icon {
+      position: absolute; left: 16px; top: 50%;
+      transform: translateY(-50%); font-size: 15px;
+      pointer-events: none; opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    .input-wrap:focus-within .input-icon { opacity: 1; }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 13px 16px 13px 44px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 400;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder { color: var(--muted); opacity: 0.7; }
+    input:focus {
+      border-color: rgba(56,189,248,0.5);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.08);
+    }
+
+    .pwd-toggle {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 14px;
+      transition: color 0.2s;
+    }
+    .pwd-toggle:hover { color: var(--accent); }
+
+    .form-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin: 4px 0 20px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .remember { display: flex; align-items: center; gap: 8px; }
+    .remember input[type="checkbox"] {
+      width: 15px; height: 15px; padding: 0;
+      accent-color: var(--accent);
+    }
+    .remember label {
+      font-size: 13px; color: var(--muted); font-weight: 300; cursor: pointer;
+    }
+    .forgot { font-size: 13px; color: var(--accent); text-decoration: none; }
+    .forgot:hover { text-decoration: underline; }
+
+    .btn-submit {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 12px;
+      color: #0a0f1e;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .btn-submit:hover {
+      opacity: 0.9; transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(56,189,248,0.28);
+    }
+    .btn-submit:active { transform: translateY(0); }
+
+    .btn-submit.loading { pointer-events: none; color: transparent; }
+    .btn-submit.loading::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(10,15,30,0.3);
+      border-top-color: #0a0f1e;
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    .signup {
+      text-align: center; margin-top: 20px;
+      font-size: 14px; color: var(--muted); font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .signup a { color: var(--accent); text-decoration: none; font-weight: 400; }
+    .signup a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="card">
+  <div class="brand">
+    <div class="brand-icon">🧠</div>
+    <div class="brand-name">Study<span>Mind</span> AI</div>
+  </div>
+
+  <div class="form-header">
+    <h2>Welcome back 👋</h2>
+    <p>Sign in to continue learning</p>
+  </div>
+
+  <form action="/login" method="POST" id="loginForm">
+    <div class="form-group">
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input type="text" name="username" placeholder="Enter Username" required autocomplete="username">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" name="password" id="password" placeholder="Enter Password" required autocomplete="current-password">
+        <button type="button" class="pwd-toggle" id="togglePwd">👁</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="remember">
+        <input type="checkbox" id="remember" name="remember">
+        <label for="remember">Remember me</label>
+      </div>
+      <a href="#" class="forgot">Forgot password?</a>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">Login →</button>
+  </form>
+
+  <div class="signup">
+    Don't have an account? <a href="/signup">Sign Up</a>
+  </div>
+</div>
+
+<script>
+  const toggle = document.getElementById('togglePwd');
+  const pwd    = document.getElementById('password');
+  toggle.addEventListener('click', () => {
+    const show = pwd.type === 'password';
+    pwd.type = show ? 'text' : 'password';
+    toggle.textContent = show ? '🙈' : '👁';
+  });
+
+
+</script>
+</body>
+</html>
