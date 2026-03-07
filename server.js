@@ -34,7 +34,6 @@ app.get('/dashboard', (req, res) => {
 
 app.post("/login", async (req, res) => {
 
-  console.log("Login route hit");
 
   const { username, password } = req.body;
 
@@ -45,7 +44,6 @@ app.post("/login", async (req, res) => {
   }
 
   if (user.password === password) {
-    console.log("Password correct");
     return res.redirect("/dashboard");
   }
 
