@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMind AI — PDF Summarizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #090d1a;
+      --surface: #0f1629;
+      --surface2: #131d35;
+      --border: rgba(99, 179, 237, 0.12);
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --accent3: #34d399;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    html, body {
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(56,189,248,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(129,140,248,0.07) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(80px);
+      pointer-events: none; z-index: 0;
+      animation: pulse 6s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 400px; height: 400px; background: rgba(56,189,248,0.06); top: -100px; left: -100px; }
+    .orb-2 { width: 350px; height: 350px; background: rgba(129,140,248,0.06); bottom: -80px; right: -80px; animation-delay: -3s; }
+
+    @keyframes pulse {
+      from { opacity: 0.5; transform: scale(1); }
+      to   { opacity: 1;   transform: scale(1.1); }
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Brand */
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      justify-content: center; margin-bottom: 36px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 18px; letter-spacing: -0.5px;
+    }
+    .brand-name span { color: var(--accent); }
+
+    /* Header */
+    .form-header { text-align: center; margin-bottom: 36px; }
+    .form-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 700;
+      letter-spacing: -1px; margin-bottom: 8px;
+    }
+    .form-header p { font-size: 14px; color: var(--muted); font-weight: 300; line-height: 1.6; }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.01);
+      opacity: 0; transform: translateY(10px);
+      animation: fadeUp 0.5s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: rgba(56,189,248,0.45);
+      background: rgba(56,189,248,0.04);
+    }
+    .drop-zone.has-file {
+      border-color: rgba(52,211,153,0.45);
+      background: rgba(52,211,153,0.04);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .drop-icon {
+      font-size: 40px; margin-bottom: 14px;
+      display: block;
+      transition: transform 0.2s;
+    }
+    .drop-zone:hover .drop-icon { transform: translateY(-3px); }
+
+    .drop-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .drop-sub { font-size: 13px; color: var(--muted); font-weight: 300; }
+
+    .file-name {
+      display: none;
+      align-items: center; justify-content: center; gap: 8px;
+      margin-top: 14px;
+      font-size: 13px; color: var(--accent3);
+      font-weight: 500;
+    }
+    .file-name.show { display: flex; }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 12px;
+      color: #0a0f1e;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .btn-submit:hover {
+      opacity: 0.9; transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(56,189,248,0.28);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit.loading { pointer-events: none; color: transparent; }
+    .btn-submit.loading::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(10,15,30,0.3);
+      border-top-color: #0a0f1e;
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    /* Supported formats */
+    .formats {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; margin-top: 16px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .format-tag {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--muted);
+    }
+    .formats-label { font-size: 12px; color: var(--muted); }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 16px;
+      margin: 28px 0;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    /* Summary box */
+    .summary-box {
+      opacity: 0;
+      animation: fadeUp 0.5s 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .summary-label {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .summary-label span {
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .copy-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 12px;
+      color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 12px; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .copy-btn:hover { border-color: rgba(56,189,248,0.4); color: var(--accent); }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 300;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: rgba(56,189,248,0.4); }
+    textarea::placeholder { color: var(--muted); opacity: 0.5; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 20px 0;
+    }
+    .empty-state p {
+      font-size: 13px; color: var(--muted); font-weight: 300;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="card">
+
+  <div class="brand">
+    <div class="brand-icon">🧠</div>
+    <div class="brand-name">Study<span>Mind</span> AI</div>
+  </div>
+
+  <div class="form-header">
+    <h2>PDF Summarizer</h2>
+    <p>Upload any PDF and let AI extract the key insights for you instantly.</p>
+  </div>
+
+  <form action="/summarize" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" name="file" accept="application/pdf,image/*" required id="fileInput">
+      <span class="drop-icon">📄</span>
+      <div class="drop-title">Drop your file here</div>
+      <div class="drop-sub">or click to browse files</div>
+      <div class="file-name" id="fileName">
+        <span>✅</span>
+        <span id="fileNameText"></span>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">
+      ⚡ Generate Summary
+    </button>
+
+  </form>
+
+  <div class="formats">
+    <span class="formats-label">Supports</span>
+    <span class="format-tag">PDF</span>
+    <span class="format-tag">Up to 50MB</span>
+    <span class="format-tag">Any language</span>
+  </div>
+
+  <div class="divider"><span>summary output</span></div>
+
+  <div class="summary-box">
+    <% if(summary){ %>
+      <div class="summary-label">
+        <span>✦ AI Summary</span>
+        <button class="copy-btn" onclick="copySummary()">Copy</button>
+      </div>
+      <textarea readonly id="summaryText"><%= summary %></textarea>
+    <% } else { %>
+      <div class="empty-state">
+        <p>Your AI-generated summary will appear here after upload.</p>
+      </div>
+    <% } %>
+  </div>
+<button onclick="printSummary()" class="btn-submit" style="margin-top:15px;">
+🖨 Print Summary
+</button>
+</div>
+
+<script>
+ 
+
+function printSummary() {
+
+  const summary = document.getElementById("summaryText").value;
+
+  const printWindow = window.open('', '', 'height=600,width=800');
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>AI Summary</title>
+        <style>
+          body{
+            font-family: Arial;
+            padding:40px;
+            line-height:1.6;
+          }
+          h2{
+            text-align:center;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>StudyMind AI - PDF Summary</h2>
+        <p>${summary.replace(/\n/g,'<br>')}</p>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+}
+
+  // File input display
+  const fileInput = document.getElementById('fileInput');
+  const dropZone  = document.getElementById('dropZone');
+  const fileName  = document.getElementById('fileName');
+  const fileNameText = document.getElementById('fileNameText');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      fileNameText.textContent = fileInput.files[0].name;
+      fileName.classList.add('show');
+      dropZone.classList.add('has-file');
+    }
+  });
+
+  // Drag & drop visual
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', () => dropZone.classList.remove('dragover'));
+
+  // Submit loading state
+  document.getElementById('uploadForm').addEventListener('submit', (e) => {
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+  });
+
+  // Copy summary
+  function copySummary() {
+    const text = document.getElementById('summaryText');
+    if (text) {
+      navigator.clipboard.writeText(text.value);
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      btn.style.color = 'var(--accent3)';
+      btn.style.borderColor = 'rgba(52,211,153,0.4)';
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    }
+  }
+</script>
+</body>
+</html>
