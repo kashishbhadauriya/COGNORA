@@ -1,11 +1,16 @@
 require("dotenv").config();
+const fs = require("fs");
 const express = require('express');
 const mongoose = require('mongoose');
 const User = require('./models/user');
+
 const multer = require("multer");
 const pdfParse = require("pdf-parse");
 const Groq = require("groq-sdk");
 const Tesseract = require("tesseract.js");
+const Summary = require("./models/summary");
+const Quiz = require("./models/quiz");
+const Doubt = require("./models/doubt");
 
 
 const app = express();
@@ -78,69 +83,156 @@ app.post("/signup", async (req, res) => {
 });
 
 
-app.get("/summarize", (req,res)=>{
-  res.render("summarize",{summary: null});
-}
-);
+app.get("/summarize",(req,res)=>{
+res.render("summarize",{summary: null});
+});
 
 
 app.post("/summarize", upload.single("file"), async (req,res)=>{
-
 try {
-
 let text = "";
-
+if(!req.file){
+return res.send("No file uploaded");
+}
 const fileBuffer = req.file.buffer;
 const fileType = req.file.mimetype;
-
-// If file is PDF
 if(fileType === "application/pdf"){
-
 const data = await pdfParse(fileBuffer);
 text = data.text;
-
 }
-
-// If file is image (paper notes)
 else if(fileType.startsWith("image/")){
-
-const result = await Tesseract.recognize(
-fileBuffer,
-"eng"
-);
-
+const result = await Tesseract.recognize(fileBuffer,"eng");
 text = result.data.text;
-
 }
-
 else{
 return res.send("Unsupported file format");
 }
-
-// limit text size for AI
 text = text.slice(0,4000);
-
 const completion = await groq.chat.completions.create({
 model: "llama-3.3-70b-versatile",
 messages: [
 {
 role: "user",
-content: `Summarize this document in short so user can understand it easily in simple bullet points:\n\n${text}`
+content: `Summarize this document in short bullet points:\n\n${text}`
 }
 ]
 });
-
 const summary = completion.choices[0].message.content;
+await Summary.create({
+    filename: req.file.originalname,
+originalText: text,
+summary: summary
+});
 
 res.render("summarize",{summary});
-
 }
 catch(err){
 console.log(err);
 res.send("Error summarizing file");
 }
+});
+
+app.get("/quiz",(req,res)=>{
+res.render("quiz",{quiz: null});
+}
+);
+app.post("/quiz", upload.single("file"), async (req, res) => {
+try {
+  const fileBuffer = req.file.buffer;
+const pdfData = await pdfParse(fileBuffer);
+const text=pdfData.text.substring(0,4000);
+const response = await groq.chat.completions.create({
+model: "llama-3.3-70b-versatile",
+messages: [
+{
+role: "user",
+content: `Generate summary and 5 quiz questions (with answers) from this text:\n\n${text}`
+}
+],
+});
+const quiz = response.choices[0].message.content;
+await Quiz.create({
+filename: req.file.originalname,
+quizText: quiz
+});
+
+res.render("quiz",{quiz});
+} catch (error) {
+console.log(error);
+res.send("Error generating quiz");
+}
+});
+
+
+app.get("/doubt", (req, res) => {
+  res.render("doubt", { answer: null, question: "" });
+});
+app.post("/doubt", async (req, res) => {
+
+try{
+
+const question = req.body.question;
+
+const prompt = `
+You are an AI tutor helping a student understand concepts clearly.
+
+Explain the following question in a structured and easy way.
+
+Use this format:
+## Concept
+Explain the concept clearly in simple words.
+
+## Key Points
+- Important idea 1
+- Important idea 2
+- Important idea 3
+
+## Example
+Give a simple example if possible.
+
+## Summary
+Short 1–2 line recap.
+
+Question:
+${question}
+`;
+
+const response = await groq.chat.completions.create({
+messages:[{ role:"user", content: prompt }],
+model:"llama-3.1-8b-instant"
+});
+
+const answer = response.choices[0].message.content;
+await Doubt.create({ question, answer });
+
+
+res.render("doubt",{ answer, question });
+
+}catch(err){
+
+console.log(err);
+res.send("Error generating answer");
+}
+});
+
+
+
+app.get("/notes", async (req, res) => {
+
+const summaries = await Summary.find().sort({ createdAt: -1 }).limit(10);
+
+const quizzes = await Quiz.find().sort({ createdAt: -1 }).limit(10);
+
+const doubts = await Doubt.find().sort({ createdAt: -1 }).limit(10);
+
+res.render("notes", {
+summaries,
+quizzes,
+doubts
+});
 
 });
+
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });

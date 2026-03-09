@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyMind AI - Notes</title>
+
+<style>
+
+body{
+background:#0b0c10;
+color:#e8eaf0;
+font-family:Arial;
+padding:40px;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+.section{
+margin-bottom:50px;
+}
+
+.card{
+background:#13151c;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+border:1px solid rgba(255,255,255,0.08);
+}
+
+.card strong{
+color:#c8f04c;
+}
+
+.card small{
+color:#888;
+}
+
+.content{
+white-space: pre-wrap;
+line-height:1.6;
+margin-top:10px;
+}
+
+.preview{
+max-height:120px;
+overflow:hidden;
+}
+
+.toggle-btn{
+margin-top:10px;
+background:#c8f04c;
+border:none;
+padding:6px 12px;
+border-radius:6px;
+cursor:pointer;
+font-size:12px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>📚 StudyMind AI Notes</h1>
+
+
+<!-- ================= SUMMARY ================= -->
+
+<div class="section">
+
+<h2>📄 Recent Summaries</h2>
+
+<% if(!summaries || summaries.length === 0){ %>
+<p>No summaries yet</p>
+<% } %>
+
+<% summaries.forEach((note,i) => { %>
+
+<div class="card">
+
+<strong><%= note.filename %></strong>
+
+<p class="content preview" id="summary-<%= i %>">
+<%= note.summary %>
+</p>
+
+<button class="toggle-btn" onclick="toggleContent('summary','<%= i %>')">
+Show More
+</button>
+
+<br><br>
+
+<small>
+Created: <%= new Date(note.createdAt).toDateString() %>
+</small>
+
+</div>
+
+<% }) %>
+
+</div>
+
+
+
+<!-- ================= QUIZZES ================= -->
+
+<div class="section">
+
+<h2>🧠 Recent Quizzes</h2>
+
+<% if(!quizzes || quizzes.length === 0){ %>
+<p>No quizzes generated yet</p>
+<% } %>
+
+<% quizzes.forEach((q,i) => { %>
+
+<div class="card">
+
+<strong><%= q.filename %></strong>
+
+<p class="content preview" id="quiz-<%= i %>">
+<%= q.quizText %>
+</p>
+
+<button class="toggle-btn" onclick="toggleContent('quiz','<%= i %>')">
+Show More
+</button>
+
+<br><br>
+
+<small>
+Created: <%= new Date(q.createdAt).toDateString() %>
+</small>
+
+</div>
+
+<% }) %>
+
+</div>
+
+
+
+<!-- ================= DOUBTS ================= -->
+
+<div class="section">
+
+<h2>❓ Recent Doubts</h2>
+
+<% if(!doubts || doubts.length === 0){ %>
+<p>No doubts asked yet</p>
+<% } %>
+
+<% doubts.forEach((d,i) => { %>
+
+<div class="card">
+
+<strong>Question:</strong>
+
+<p class="content">
+<%= d.question %>
+</p>
+
+<strong>Answer:</strong>
+
+<p class="content preview" id="doubt-<%= i %>">
+<%= d.answer %>
+</p>
+
+<button class="toggle-btn" onclick="toggleContent('doubt','<%= i %>')">
+Show More
+</button>
+
+<br><br>
+
+<small>
+Created: <%= new Date(d.createdAt).toDateString() %>
+</small>
+
+</div>
+
+<% }) %>
+
+</div>
+
+
+
+<script>
+
+function toggleContent(type,index){
+
+const el = document.getElementById(type + "-" + index);
+const btn = event.target;
+
+if(el.classList.contains("preview")){
+el.classList.remove("preview");
+btn.innerText="Show Less";
+}else{
+el.classList.add("preview");
+btn.innerText="Show More";
+}
+
+}
+
+</script>
+
+</body>
+</html>
