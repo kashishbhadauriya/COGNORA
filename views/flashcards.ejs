@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Flashcards</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0f1020,#1c1c35);
+color:white;
+min-height:100vh;
+text-align:center;
+padding:40px;
+}
+
+/* Title */
+
+h1{
+font-size:34px;
+margin-bottom:25px;
+}
+
+/* Form */
+
+textarea{
+width:60%;
+height:130px;
+padding:15px;
+border-radius:12px;
+border:none;
+outline:none;
+font-size:15px;
+background:#1f1f3d;
+color:white;
+resize:none;
+box-shadow:0 0 0 1px rgba(255,255,255,0.08);
+}
+
+textarea::placeholder{
+color:#aaa;
+}
+
+button{
+margin-top:15px;
+padding:12px 26px;
+border:none;
+border-radius:30px;
+background:linear-gradient(135deg,#7b5cff,#5e46d4);
+color:white;
+font-size:15px;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(123,92,255,0.4);
+}
+
+/* Divider */
+
+hr{
+margin:40px auto;
+width:70%;
+border:none;
+height:1px;
+background:#444;
+}
+
+/* Flashcards Container */
+
+.container{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:30px;
+margin-top:40px;
+}
+
+/* Flashcard */
+
+.flashcard{
+width:260px;
+height:180px;
+perspective:1000px;
+cursor:pointer;
+}
+
+.card{
+width:100%;
+height:100%;
+position:relative;
+transform-style:preserve-3d;
+transition:transform 0.6s;
+}
+
+.flashcard.flip .card{
+transform:rotateY(180deg);
+}
+
+/* Front + Back */
+
+.front,.back{
+position:absolute;
+width:100%;
+height:100%;
+backface-visibility:hidden;
+border-radius:14px;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+font-size:17px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* Question */
+
+.front{
+background:linear-gradient(135deg,#2b2b55,#1f1f3d);
+}
+
+/* Answer */
+
+.back{
+background:linear-gradient(135deg,#7b5cff,#5e46d4);
+color:white;
+transform:rotateY(180deg);
+}
+
+/* Empty text */
+
+.empty{
+opacity:0.7;
+margin-top:20px;
+}
+
+</style>
+
+<script>
+
+function flipCard(card){
+card.classList.toggle("flip");
+}
+
+</script>
+
+</head>
+
+<body>
+
+<h1>🧠 AI Flashcard Generator</h1>
+
+<form action="/flashcards" method="POST">
+
+<textarea name="text" placeholder="Paste your study notes here..."></textarea>
+
+<br>
+
+<button type="submit">Generate Flashcards</button>
+
+</form>
+
+<hr>
+
+<h2>Your Flashcards</h2>
+
+<div class="container">
+
+<% if(!cards || cards.length === 0){ %>
+<p class="empty">No flashcards generated yet.</p>
+<% } %>
+
+<% cards.forEach(card => { %>
+
+<div class="flashcard" onclick="flipCard(this)">
+<div class="card">
+
+<div class="front">
+<%= card.question %>
+</div>
+
+<div class="back">
+<%= card.answer %>
+</div>
+
+</div>
+</div>
+
+<% }) %>
+
+</div>
+
+</body>
+</html>

@@ -1,8 +1,15 @@
 const mongoose = require("mongoose");
 
 const doubtSchema = new mongoose.Schema({
+
 question: String,
-answer: String
+answer: String,
+
+userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+}
+
 },{
 timestamps:true
 });

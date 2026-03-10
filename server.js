@@ -13,6 +13,8 @@
   const Doubt = require("./models/doubt");
   const bcrypt = require("bcrypt");
   const session = require("express-session");
+  const Flashcard = require("./models/flashcard");
+  const chat=require("./models/chat");
 
 
 
@@ -116,7 +118,8 @@ res.render("login");
     res.render('dashboard');
   });
 
-  app.get("/summarize", isLoggedIn,(req,res)=>{
+  app.get("/summarize", isLoggedIn,async (req,res)=>{
+    const summary = await Summary.findOne({ user: req.session.userId }).sort({ createdAt: -1 });
   res.render("summarize",{summary: null});
   });
 
@@ -154,6 +157,7 @@ res.render("login");
   await Summary.create({
       filename: req.file.originalname,
   originalText: text,
+  user: req.session.userId,
   summary: summary
   });
 
@@ -166,6 +170,7 @@ res.render("login");
   });
 
   app.get("/quiz",isLoggedIn,(req,res)=>{
+    const quiz = Quiz.findOne({ user: req.session.userId }).sort({ createdAt: -1 });
   res.render("quiz",{quiz: null});
   }
   );
@@ -186,7 +191,8 @@ res.render("login");
   const quiz = response.choices[0].message.content;
   await Quiz.create({
   filename: req.file.originalname,
-  quizText: quiz
+  quizText: quiz,
+  user: req.session.userId,
   });
 
   res.render("quiz",{quiz});
@@ -198,6 +204,7 @@ res.render("login");
 
 
   app.get("/doubt", isLoggedIn, (req, res) => {
+    const doubt = Doubt.findOne({ user: req.session.userId }).sort({ createdAt: -1 });
     res.render("doubt", { answer: null, question: "" });
   });
   app.post("/doubt", isLoggedIn, async (req, res) => {
@@ -236,7 +243,11 @@ res.render("login");
   });
 
   const answer = response.choices[0].message.content;
-  await Doubt.create({ question, answer });
+  await Doubt.create({
+  question,
+  answer,
+  userId: req.session.userId
+  });
 
 
   res.render("doubt",{ answer, question });
@@ -251,12 +262,9 @@ res.render("login");
 
 
   app.get("/notes",isLoggedIn,async (req, res) => {
-
-  const summaries = await Summary.find().sort({ createdAt: -1 }).limit(10);
-
-  const quizzes = await Quiz.find().sort({ createdAt: -1 }).limit(10);
-
-  const doubts = await Doubt.find().sort({ createdAt: -1 }).limit(10);
+    const summaries = await Summary.find({ user: req.session.userId }).sort({ createdAt: -1 });
+    const quizzes = await Quiz.find({ user: req.session.userId }).sort({ createdAt: -1 });
+    const doubts = await Doubt.find({ userId: req.session.userId }).sort({ createdAt: -1 });  
 
   res.render("notes", {
   summaries,
@@ -267,8 +275,112 @@ res.render("login");
   });
 
 
-  app.get("/logout",(req,res)=>{
+app.get("/flashcards", async (req, res) => {
 
+    try {
+
+        const cards = await Flashcard.find({ user: req.session.userId }).sort({ createdAt: -1 });
+
+        res.render("flashcards", { cards });
+
+    } catch (error) {
+
+        console.log(error);
+        res.send("Error loading flashcards");
+
+    }
+
+});
+
+
+app.post("/flashcards", async (req, res) => {
+
+    const text = req.body.text;
+    try {
+
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.1-8b-instant",
+            messages: [
+                {
+                    role: "user",
+                    content: `
+Generate 5 flashcards from the following notes.
+Format:
+Question: ...
+Answer: ...
+
+Notes:
+${text}`
+                }
+            ]
+        });
+        const output = completion.choices[0].message.content;
+        const flashcards = [];
+        const parts = output.split("Question:");
+        parts.slice(1).forEach(part => {
+            const q = part.split("Answer:")[0].trim();
+            const a = part.split("Answer:")[1].trim();
+            flashcards.push({
+                question: q,
+                answer: a
+            });
+        });
+        for (const card of flashcards) {
+            await Flashcard.create({
+                question: card.question,
+                answer: card.answer,
+                user: req.session.userId
+            });
+        }
+        res.redirect("/flashcards");
+    } catch (error) {
+        console.log(error);
+        res.send("Error generating flashcards");
+    }
+
+});
+
+
+app.get("/chat", isLoggedIn, (req,res)=>{
+  const chats=chat.find({ user: req.session.userId }).sort({ createdAt: -1 });
+res.render("chat", { chats });
+});
+
+
+app.post("/chat", async (req, res) => {
+
+  const userMessage = req.body.message;
+
+  try {
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content: userMessage
+        }
+      ]
+    });
+
+    const reply = completion.choices[0].message.content;
+    await chat.create({
+      message: userMessage,
+      response: reply,
+      user: req.session.userId
+    });
+
+    res.json({ reply });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("AI Error");
+  }
+
+});
+
+
+  app.get("/logout",(req,res)=>{
   req.session.destroy(()=>{
   res.redirect("/");
   });
