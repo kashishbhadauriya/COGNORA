@@ -10,7 +10,7 @@
   const Tesseract = require("tesseract.js");
   const Summary = require("./models/summary");
   const Quiz = require("./models/quiz");
-  const Doubt = require("./models/doubt");
+  const Doubt = require("./models/Doubt");
   const bcrypt = require("bcrypt");
   const session = require("express-session");
   const Flashcard = require("./models/flashcard");
