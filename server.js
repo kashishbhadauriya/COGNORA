@@ -61,22 +61,21 @@ res.render("login");
     res.render('signup');
   });
 
-
-  app.post("/login", async (req, res) => {
+app.post("/login", async (req, res) => {
 
   const { username, password } = req.body;
 
   const user = await User.findOne({ username });
 
   if (!user) {
-  return res.send("User not found");
+    return res.render("login", { error: "⚠️ User not found. Please sign up first." });
   }
 
   // compare hashed password
   const match = await bcrypt.compare(password, user.password);
 
   if (!match) {
-  return res.send("Invalid password");
+    return res.render("login", { error: "⚠️ Incorrect password. Try again." });
   }
 
   // store user in session
@@ -84,10 +83,19 @@ res.render("login");
 
   res.redirect("/dashboard");
 
-  });
-  app.post("/signup", async (req, res) => {
+});
+
+
+app.post("/signup", async (req, res) => {
 
   const { username, email, password } = req.body;
+
+  // check if email already exists
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    return res.render("signup", { error: "⚠️ Email already registered. Please login." });
+  }
 
   // hash password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -107,16 +115,18 @@ res.render("login");
 
   res.redirect("/dashboard");
 
-  });
-  function isLoggedIn(req,res,next){
+});
+
+
+function isLoggedIn(req,res,next){
 
   if(req.session.userId){
-  next();
+    next();
   }else{
-  res.redirect("/login");
+    res.render("login", { error: "⚠️ Please login first." });
   }
 
-  }
+}
 
   app.get('/dashboard', isLoggedIn, (req, res) => {
     res.render('dashboard');
