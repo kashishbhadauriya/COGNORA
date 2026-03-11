@@ -11,7 +11,7 @@
   const Summary = require("./models/summary");
   const Quiz = require("./models/quiz");
   const Doubt = require("./models/Doubt");
-  const bcrypt = require("bcrypt");
+  const bcrypt = require("bcryptjs");
   const session = require("express-session");
   const Flashcard = require("./models/flashcard");
   const chat=require("./models/chat");
@@ -30,11 +30,15 @@
   app.use(express.static('public'));
 
 
-  // MongoDB connection
-  mongoose.connect('mongodb://localhost:27017/studyapp')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+// MongoDB connection
+const dbURI = process.env.MONGO_URI;
 
+mongoose.connect(dbURI)
+  .then(() => console.log('MongoDB connected successfully'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    // Standard practice to help debug connection issues in production logs
+  });
 
   const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
@@ -388,5 +392,5 @@ app.post("/chat", async (req, res) => {
   });
 
   app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`Example app listening at http://:${port}`);
   });
