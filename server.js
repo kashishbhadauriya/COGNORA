@@ -10,7 +10,7 @@
   const Tesseract = require("tesseract.js");
   const Summary = require("./models/summary");
   const Quiz = require("./models/quiz");
-  const Doubt = require("./models/doubt");
+  const Doubt = require("./models/Doubt");
   const bcrypt = require("bcrypt");
   const session = require("express-session");
   const Flashcard = require("./models/flashcard");
@@ -33,11 +33,15 @@
   
 
 
-  // MongoDB connection
-  mongoose.connect('mongodb://localhost:27017/studyapp')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+// MongoDB connection
+const dbURI = process.env.MONGO_URI;
 
+mongoose.connect(dbURI)
+  .then(() => console.log('MongoDB connected successfully'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    // Standard practice to help debug connection issues in production logs
+  });
 
   const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
@@ -67,7 +71,7 @@ app.get("/signup", (req, res) => {
 
 
 
-app.post("/login", async (req, res) => {
+  app.post("/login", async (req, res) => {
 
   const { username, password } = req.body;
 
@@ -89,24 +93,10 @@ app.post("/login", async (req, res) => {
 
   res.redirect("/dashboard");
 
-});
-
-
-
-
-app.post("/signup", async (req, res) => {
-  const { username, email, password } = req.body;
-
-  // check if user already exists
-  const existingUser = await User.findOne({
-    $or: [{ username }, { email }]
   });
+  app.post("/signup", async (req, res) => {
 
-  if (existingUser) {
-    return res.render("signup", {
-      error: "⚠️ User already exists. Please login instead."
-    });
-  }
+  const { username, email, password } = req.body;
 
   // hash password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -119,10 +109,13 @@ app.post("/signup", async (req, res) => {
 
   await newUser.save();
 
-  res.redirect("/login");
-});
+  // login user after signup
+  req.session.userId = newUser._id;
 
-function isLoggedIn(req,res,next){
+  res.redirect("/dashboard");
+
+  });
+  function isLoggedIn(req,res,next){
 
   if(req.session.userId){
     next();
@@ -406,5 +399,5 @@ app.post("/chat", async (req, res) => {
   });
 
   app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`Example app listening at http://:${port}`);
   });
