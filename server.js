@@ -30,6 +30,9 @@
   app.use(express.static('public'));
 
 
+  
+
+
   // MongoDB connection
   mongoose.connect('mongodb://localhost:27017/studyapp')
   .then(() => console.log('MongoDB connected'))
@@ -45,6 +48,9 @@
     resave: false,
     saveUninitialized: false
   }));
+  app.get("/login", (req, res) => {
+  res.render("login", { error: null }); 
+});
 
 
   app.get("/",(req,res)=>{
@@ -53,26 +59,29 @@ return res.redirect("/dashboard");
 }
 res.render("login");
 });
-  app.get('/signup', (req, res) => {
-    res.render('signup');
-  });
 
 
-  app.post("/login", async (req, res) => {
+app.get("/signup", (req, res) => {
+  res.render("signup", { error: null });
+});
+
+
+
+app.post("/login", async (req, res) => {
 
   const { username, password } = req.body;
 
   const user = await User.findOne({ username });
 
   if (!user) {
-  return res.send("User not found");
+    return res.render("login", { error: "⚠️ User not found. Please sign up first." });
   }
 
   // compare hashed password
   const match = await bcrypt.compare(password, user.password);
 
   if (!match) {
-  return res.send("Invalid password");
+    return res.render("login", { error: "⚠️ Incorrect password. Try again." });
   }
 
   // store user in session
@@ -80,10 +89,24 @@ res.render("login");
 
   res.redirect("/dashboard");
 
-  });
-  app.post("/signup", async (req, res) => {
+});
 
+
+
+
+app.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
+
+  // check if user already exists
+  const existingUser = await User.findOne({
+    $or: [{ username }, { email }]
+  });
+
+  if (existingUser) {
+    return res.render("signup", {
+      error: "⚠️ User already exists. Please login instead."
+    });
+  }
 
   // hash password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -91,28 +114,23 @@ res.render("login");
   const newUser = new User({
     username,
     email,
-    password: hashedPassword,
-    createdAt: new Date(),
-    views: 0
+    password: hashedPassword
   });
 
   await newUser.save();
 
-  // login user after signup
-  req.session.userId = newUser._id;
+  res.redirect("/login");
+});
 
-  res.redirect("/dashboard");
-
-  });
-  function isLoggedIn(req,res,next){
+function isLoggedIn(req,res,next){
 
   if(req.session.userId){
-  next();
+    next();
   }else{
-  res.redirect("/login");
+    res.render("login", { error: "⚠️ Please login first." });
   }
 
-  }
+}
 
   app.get('/dashboard', isLoggedIn, (req, res) => {
     res.render('dashboard');

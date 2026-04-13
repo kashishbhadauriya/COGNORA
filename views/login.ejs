@@ -4,14 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyMind AI — Login</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/login.css">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    .error-box {
+      background: rgba(255, 77, 77, 0.15);
+      color: #ff4d4d;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 15px 0;
+      text-align: center;
+      font-size: 14px;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
   </style>
 </head>
+
 <body>
 
 <div class="orb orb-1"></div>
@@ -28,7 +48,15 @@
     <p>Sign in to continue learning</p>
   </div>
 
+  <!-- ✅ ERROR MESSAGE -->
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="error-box">
+    <%= error %>
+  </div>
+<% } %>
+
   <form action="/login" method="POST" id="loginForm">
+    
     <div class="form-group">
       <div class="input-wrap">
         <span class="input-icon">👤</span>
@@ -44,8 +72,6 @@
       </div>
     </div>
 
-
-
     <button type="submit" class="btn-submit" id="submitBtn">Login →</button>
   </form>
 
@@ -56,14 +82,14 @@
 
 <script>
   const toggle = document.getElementById('togglePwd');
-  const pwd    = document.getElementById('password');
+  const pwd = document.getElementById('password');
+
   toggle.addEventListener('click', () => {
     const show = pwd.type === 'password';
     pwd.type = show ? 'text' : 'password';
     toggle.textContent = show ? '🙈' : '👁';
   });
-
-
 </script>
+
 </body>
 </html>
