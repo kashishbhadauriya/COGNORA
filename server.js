@@ -364,17 +364,63 @@ app.post("/chat", async (req, res) => {
 
   try {
 
+    // ✅ 1. Get LAST chats (important)
+    const previousChats = await chat.find({ user: req.session.userId })
+      .sort({ createdAt: -1 })   // latest first
+      .limit(20);                // more context
+
+    // reverse to maintain correct order
+    previousChats.reverse();
+
+    // ✅ 2. Strong SYSTEM PROMPT
+    let messages = [
+      {
+        role: "system",
+   content: `
+You are StudyMind AI, a smart student-friendly assistant.
+
+Rules:
+- Always give answers in clean format
+- Use headings and bullet points
+- Keep answers short and clear
+- Avoid long paragraphs
+- Make answers look like exam notes
+- Highlight keywords using bold
+- Structure like:
+
+Definition
+Then points
+Then types
+
+Never give long paragraph explanations unless asked.
+`
+      }
+    ];
+
+    // ✅ 3. Add history properly
+    previousChats.forEach(chat => {
+      messages.push(
+        { role: "user", content: chat.message },
+        { role: "assistant", content: chat.response }
+      );
+    });
+
+    // ✅ 4. Add current message
+    messages.push({
+      role: "user",
+      content: userMessage
+    });
+
+    // ✅ 5. Call AI
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "user",
-          content: userMessage
-        }
-      ]
+      messages: messages,
+      temperature: 0.7   // more natural responses
     });
 
     const reply = completion.choices[0].message.content;
+
+    // ✅ 6. Save
     await chat.create({
       message: userMessage,
       response: reply,

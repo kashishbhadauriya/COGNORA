@@ -1,219 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StudyMind AI — Ask a Doubt</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/doubt.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMind AI — Ask a Doubt</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/doubt.css">
 
-<style>
+  <style>
 
-</style>
+  </style>
 </head>
+
 <body>
 
-<div class="page">
+  <div class="page">
 
-  <!-- ═══ LEFT: Question Input ═══ -->
-  <aside class="panel-left">
+    <!-- ═══ LEFT: Question Input ═══ -->
+    <aside class="panel-left">
 
-    <div class="brand">
-      <div class="brand-icon">🧠</div>
-      <div class="brand-name">Study<span>Mind</span> AI</div>
-    </div>
-
-    <div class="panel-header">
-      <h2>Ask a Doubt</h2>
-      <p>Type any question and get a clear, detailed AI explanation instantly.</p>
-    </div>
-
-    <form action="/doubt" method="POST" id="doubtForm">
-
-      <div class="input-wrap">
-        <div class="input-label">Your Question</div>
-        <textarea
-          name="question"
-          id="questionInput"
-          class="question-input"
-          placeholder="e.g. What is Newton's second law of motion?"
-          maxlength="1000"
-          required
-        ><% if(question){ %><%= question %><% } %></textarea>
-        <div class="char-count"><span id="charCount">0</span> / 1000</div>
+      <div class="brand">
+        <div class="brand-icon">🧠</div>
+        <div class="brand-name">Study<span>Mind</span> AI</div>
       </div>
 
+      <div class="panel-header">
+        <h2>Ask a Doubt</h2>
+        <p>Type any question and get a clear, detailed AI explanation instantly.</p>
+      </div>
 
-      <button type="submit" class="btn-submit" id="submitBtn">
-        💬 Ask AI
-      </button>
+      <form action="/doubt" method="POST" id="doubtForm">
 
-    </form>
+        <div class="input-wrap">
+          <div class="input-label">Your Question</div>
+          <textarea name="question" id="questionInput" class="question-input"
+            placeholder="e.g. What is Newton's second law of motion?" maxlength="1000"
+            required><% if(question){ %><%= question %><% } %></textarea>
+          <div class="char-count"><span id="charCount">0</span> / 1000</div>
+        </div>
 
 
-  </aside>
+        <button type="submit" class="btn-submit" id="submitBtn">
+          💬 Ask AI
+        </button>
 
-  <!-- ═══ RIGHT: Answer Panel ═══ -->
-  <main class="panel-right">
+      </form>
 
-    <% if(answer){ %>
 
-    <%
-      /*
-        Parse answer text into sections/bullets.
-        Headings: ##, **, or ALL CAPS lines
-        Bullets: -, *, •
-        Paragraphs: plain text
-      */
-      const rawAns = answer;
-      const ansLines = rawAns.split('\n');
-      let ansSections = [];
-      let curSec = null;
+    </aside>
 
-      ansLines.forEach(line => {
-        const l = line.trim();
-        if(!l){
+    <!-- ═══ RIGHT: Answer Panel ═══ -->
+    <main class="panel-right">
+
+      <% if(answer){ %>
+
+        <% /* Parse answer text into sections/bullets. Headings: ##, **, or ALL CAPS lines Bullets: -, *, • Paragraphs:
+          plain text */ const rawAns=answer; const ansLines=rawAns.split('\n'); let ansSections=[]; let curSec=null;
+          ansLines.forEach(line=> {
+          const l = line.trim();
+          if(!l){
           if(curSec && (curSec.bullets.length || curSec.para)){
-            ansSections.push(curSec); curSec = null;
+          ansSections.push(curSec); curSec = null;
           }
           return;
-        }
+          }
 
-        const hm = l.match(/^#{1,3}\s+(.+)/) || l.match(/^\*\*(.+?)\*\*\s*:?$/) || l.match(/^([A-Z][A-Z\s]{4,})\s*:?\s*$/);
-        if(hm){
+          const hm = l.match(/^#{1,3}\s+(.+)/) || l.match(/^\*\*(.+?)\*\*\s*:?$/) ||
+          l.match(/^([A-Z][A-Z\s]{4,})\s*:?\s*$/);
+          if(hm){
           if(curSec) ansSections.push(curSec);
           curSec = { heading: (hm[1]||hm[0]).replace(/\*\*/g,'').trim(), bullets: [], para: '' };
           return;
-        }
+          }
 
-        if(!curSec) curSec = { heading: null, bullets: [], para: '' };
+          if(!curSec) curSec = { heading: null, bullets: [], para: '' };
 
-        const bm = l.match(/^[-•*]\s+(.+)/);
-        if(bm){ curSec.bullets.push(bm[1]); return; }
+          const bm = l.match(/^[-•*]\s+(.+)/);
+          if(bm){ curSec.bullets.push(bm[1]); return; }
 
-        curSec.para = curSec.para ? curSec.para + '\n' + l : l;
-      });
-      if(curSec) ansSections.push(curSec);
-      ansSections = ansSections.filter(s => s.bullets.length || s.para);
-      const ansHasSections = ansSections.length > 0;
-    %>
+          curSec.para = curSec.para ? curSec.para + '\n' + l : l;
+          });
+          if(curSec) ansSections.push(curSec);
+          ansSections = ansSections.filter(s => s.bullets.length || s.para);
+          const ansHasSections = ansSections.length > 0;
+          %>
 
-    <!-- Header -->
-    <div class="answer-header">
-      <div>
-        <h1>AI <span>Answer</span></h1>
-        <p>Here's what our AI found for your question.</p>
-      </div>
-      <button class="copy-btn" onclick="copyAnswer()">⎘ Copy</button>
-    </div>
+          <!-- Header -->
+          <div class="answer-header">
+            <div>
+              <h1>AI <span>Answer</span></h1>
+              <p>Here's what our AI found for your question.</p>
+            </div>
+            <button class="copy-btn" onclick="copyAnswer()">⎘ Copy</button>
+          </div>
 
-    <!-- Question echo -->
-    <% if(typeof question !== 'undefined' && question){ %>
-    <div class="q-echo">
-      <div class="q-echo-icon">❓</div>
-      <div>
-        <div class="q-echo-label">Your Question</div>
-        <div class="q-echo-text"><%= question %></div>
-      </div>
-    </div>
-    <% } %>
-
-    <!-- Answer card -->
-    <div class="answer-card">
-      <div class="answer-card-head">
-        <div class="ai-badge">🧠</div>
-        <div>
-          <div class="ai-badge-text">StudyMind AI</div>
-          <div class="ai-badge-sub">Detailed explanation</div>
-        </div>
-      </div>
-
-      <div class="answer-body">
-        <% if(ansHasSections){ %>
-          <% ansSections.forEach(sec => { %>
-          <div class="ans-section">
-            <% if(sec.heading){ %>
-            <div class="ans-heading"><%= sec.heading %></div>
-            <% } %>
-            <% if(sec.para){ %>
-            <div class="ans-para"><%= sec.para %></div>
-            <% } %>
-            <% if(sec.bullets.length){ %>
-            <div class="ans-bullets">
-              <% sec.bullets.forEach(b => { %>
-              <div class="ans-bullet">
-                <div class="bullet-dot"></div>
-                <span><%= b %></span>
+          <!-- Question echo -->
+          <% if(typeof question !=='undefined' && question){ %>
+            <div class="q-echo">
+              <div class="q-echo-icon">❓</div>
+              <div>
+                <div class="q-echo-label">Your Question</div>
+                <div class="q-echo-text">
+                  <%= question %>
+                </div>
               </div>
-              <% }); %>
             </div>
             <% } %>
-          </div>
-          <% }); %>
-        <% } else { %>
-          <%= answer %>
-        <% } %>
-      </div>
-    </div>
 
-    <textarea id="answerText" readonly><%= answer %></textarea>
+              <!-- Answer card -->
+              <div class="answer-card">
+                <div class="answer-card-head">
+                  <div class="ai-badge">🧠</div>
+                  <div>
+                    <div class="ai-badge-text">StudyMind AI</div>
+                    <div class="ai-badge-sub">Detailed explanation</div>
+                  </div>
+                </div>
 
-    <% } else { %>
+                <div class="answer-body">
+                  <% if(ansHasSections){ %>
+                    <% ansSections.forEach(sec=> { %>
+                      <div class="ans-section">
+                        <% if(sec.heading){ %>
+                          <div class="ans-heading">
+                            <%= sec.heading %>
+                          </div>
+                          <% } %>
+                            <% if(sec.para){ %>
+                              <div class="ans-para">
+                                <%= sec.para %>
+                              </div>
+                              <% } %>
+                                <% if(sec.bullets.length){ %>
+                                  <div class="ans-bullets">
+                                    <% sec.bullets.forEach(b=> { %>
+                                      <div class="ans-bullet">
+                                        <div class="bullet-dot"></div>
+                                        <span>
+                                          <%= b %>
+                                        </span>
+                                      </div>
+                                      <% }); %>
+                                  </div>
+                                  <% } %>
+                      </div>
+                      <% }); %>
+                        <% } else { %>
+                          <%= answer %>
+                            <% } %>
+                </div>
+              </div>
+
+              <textarea id="answerText" readonly><%= answer %></textarea>
+
+              <% } else { %>
 
 
-    <textarea id="answerText" readonly></textarea>
+                <textarea id="answerText" readonly></textarea>
 
-    <% } %>
-  </main>
+                <% } %>
+    </main>
 
-</div>
+  </div>
 
-<script>
-  /* ── Char counter ── */
-  const qi = document.getElementById('questionInput');
-  const cc = document.getElementById('charCount');
-  function updateCount(){ cc.textContent = qi.value.length; }
-  qi.addEventListener('input', updateCount);
-  updateCount();
-
-  /* ── Subject chips ── */
-  document.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      chip.classList.toggle('active');
-      const subj = chip.dataset.subject;
-      const cur  = qi.value.trim();
-      // prepend subject if not already in text
-      if(!cur.toLowerCase().includes(subj.toLowerCase())){
-        qi.value = cur ? cur : '';
-        qi.focus();
-      }
-    });
-  });
-
-  /* ── Fill example question ── */
-  function fillQ(el){
-    const q = el.textContent.replace(/^[^\s]+\s/, ''); // strip emoji
-    document.getElementById('questionInput').value = q;
+  <script>
+    /* ── Char counter ── */
+    const qi = document.getElementById('questionInput');
+    const cc = document.getElementById('charCount');
+    function updateCount() { cc.textContent = qi.value.length; }
+    qi.addEventListener('input', updateCount);
     updateCount();
-    document.getElementById('questionInput').focus();
-  }
 
-  /* ── Loading state ── */
-  document.getElementById('doubtForm').addEventListener('submit', () => {
-    document.getElementById('submitBtn').classList.add('loading');
-    document.getElementById('submitBtn').textContent = '⏳ Thinking…';
-  });
+    /* ── Subject chips ── */
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.toggle('active');
+        const subj = chip.dataset.subject;
+        const cur = qi.value.trim();
+        // prepend subject if not already in text
+        if (!cur.toLowerCase().includes(subj.toLowerCase())) {
+          qi.value = cur ? cur : '';
+          qi.focus();
+        }
+      });
+    });
 
-  /* ── Copy answer ── */
-  function copyAnswer(){
-    const t = document.getElementById('answerText');
-    navigator.clipboard.writeText(t.value);
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = '✓ Copied!';
-    btn.style.color = '#4cf0b8';
-    setTimeout(() => { btn.textContent = '⎘ Copy'; btn.style.color = ''; }, 2000);
-  }
-</script>
+    /* ── Fill example question ── */
+    function fillQ(el) {
+      const q = el.textContent.replace(/^[^\s]+\s/, ''); // strip emoji
+      document.getElementById('questionInput').value = q;
+      updateCount();
+      document.getElementById('questionInput').focus();
+    }
+
+    /* ── Loading state ── */
+    document.getElementById('doubtForm').addEventListener('submit', () => {
+      document.getElementById('submitBtn').classList.add('loading');
+      document.getElementById('submitBtn').textContent = '⏳ Thinking…';
+    });
+
+    /* ── Copy answer ── */
+    function copyAnswer() {
+      const t = document.getElementById('answerText');
+      navigator.clipboard.writeText(t.value);
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✓ Copied!';
+      btn.style.color = '#4cf0b8';
+      setTimeout(() => { btn.textContent = '⎘ Copy'; btn.style.color = ''; }, 2000);
+    }
+  </script>
 </body>
+
 </html>

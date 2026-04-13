@@ -5,62 +5,220 @@
 
 <style>
 
-body{
-font-family: Arial;
-background:#0f1020;
-color:white;
-display:flex;
-flex-direction:column;
-align-items:center;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-#chatbox{
-width:60%;
-height:500px;
-overflow-y:auto;
-border:1px solid #444;
-padding:20px;
-margin-top:30px;
-background:#1a1a35;
-border-radius:10px;
+body {
+  font-family: Arial, sans-serif;
+  background: #0a0b1a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 30px 16px;
 }
 
-.message{
-margin:12px 0;
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #c8d6ff;
+  margin-bottom: 20px;
+  letter-spacing: 0.3px;
 }
 
-.user{
-color:#7b9cff;
+/* Chat container */
+.chat-wrap {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  background: #13152e;
+  border: 1px solid #252850;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.ai{
-color:#8affb1;
+/* Header */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #1a1d3e;
+  border-bottom: 1px solid #252850;
 }
 
-.input-area{
-margin-top:20px;
-display:flex;
-gap:10px;
+.header-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1e3a6e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-input{
-width:400px;
-padding:12px;
-border-radius:8px;
-border:none;
+.header-avatar svg {
+  width: 16px;
+  height: 16px;
+  stroke: #7bb3f0;
+  fill: none;
+  stroke-width: 2;
 }
 
-button{
-padding:12px 20px;
-border:none;
-background:#7b5cff;
-color:white;
-border-radius:8px;
-cursor:pointer;
+.header-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #dce8ff;
 }
 
-button:hover{
-background:#5e46d4;
+.header-sub {
+  font-size: 11px;
+  color: #7888b0;
+  margin-top: 1px;
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  margin-left: auto;
+}
+
+/* Messages */
+#chatbox {
+  height: 460px;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+}
+
+#chatbox::-webkit-scrollbar { width: 4px; }
+#chatbox::-webkit-scrollbar-track { background: transparent; }
+#chatbox::-webkit-scrollbar-thumb { background: #252850; border-radius: 4px; }
+
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ai .avatar {
+  background: #1e3a6e;
+  color: #7bb3f0;
+}
+
+.user .avatar {
+  background: #2d1f5e;
+  color: #a89dff;
+}
+
+.bubble {
+  max-width: 74%;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.ai .bubble {
+  background: #1e2245;
+  color: #d0d8ff;
+  border: 1px solid #252850;
+  border-radius: 4px 14px 14px 14px;
+}
+
+.user .bubble {
+  background: #2d4fc8;
+  color: #ffffff;
+  border-radius: 14px 14px 4px 14px;
+}
+
+/* Input area */
+.input-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #1a1d3e;
+  border-top: 1px solid #252850;
+  margin: 0;
+}
+
+#message {
+  flex: 1;
+  width: auto;
+  padding: 10px 16px;
+  background: #0a0b1a;
+  border: 1px solid #252850;
+  border-radius: 24px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#message::placeholder {
+  color: #4a5278;
+}
+
+#message:focus {
+  border-color: #4a7bd4;
+}
+
+button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2d4fc8;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+
+button:hover {
+  background: #3d62e0;
+}
+
+button:active {
+  transform: scale(0.94);
+}
+
+button svg {
+  width: 16px;
+  height: 16px;
+  fill: white;
 }
 
 </style>
@@ -70,13 +228,26 @@ background:#5e46d4;
 
 <h1>🤖 AI Study Chat</h1>
 
-<div id="chatbox"></div>
+<div class="chat-wrap">
 
-<div class="input-area">
+  <div class="chat-header">
+    <div class="header-avatar">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div>
+      <div class="header-name">COGNORA</div>
+    </div>
+    <div class="online-dot"></div>
+  </div>
 
-<input id="message" placeholder="Ask anything...">
+  <div id="chatbox"></div>
 
-<button onclick="sendMessage()">Send</button>
+  <div class="input-area">
+    <input id="message" placeholder="Ask anything...">
+    <button onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
 
 </div>
 
@@ -84,36 +255,121 @@ background:#5e46d4;
 
 async function sendMessage(){
 
-const input = document.getElementById("message");
-const msg = input.value.trim();
+  const input = document.getElementById("message");
+  const msg = input.value.trim();
 
-if(msg === "") return;
+  if(msg === "") return;
 
-const chatbox = document.getElementById("chatbox");
+  const chatbox = document.getElementById("chatbox");
 
-// show user message
-chatbox.innerHTML += `<div class="message user"><b>You:</b> ${msg}</div>`;
+  // show user message
+  chatbox.innerHTML += `<div class="message user"><div class="avatar">You</div><div class="bubble">${msg}</div></div>`;
 
-input.value="";
+  input.value="";
 
-// send to backend
-const res = await fetch("/chat",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({message:msg})
-});
+  // send to backend
+  const res = await fetch("/chat",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({message:msg})
+  });
 
-const data = await res.json();
+  const data = await res.json();
 
-// show AI reply
-chatbox.innerHTML += `<div class="message ai"><b>AI:</b> ${data.reply}</div>`;
+  // show AI reply
+  chatbox.innerHTML += `<div class="message ai"><div class="avatar">AI</div><div class="bubble">${data.reply}</div></div>`;
 
-// auto scroll
-chatbox.scrollTop = chatbox.scrollHeight;
+  // auto scroll
+  chatbox.scrollTop = chatbox.scrollHeight;
 
 }
+
+// Enter key support
+document.getElementById("message").addEventListener("keydown", function(e){
+  if(e.key === "Enter") sendMessage();
+});
+
+</script>
+<script>
+
+function formatAIResponse(text) {
+  // Convert **bold**
+  text = text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+
+  // Convert numbered lists
+  text = text.replace(/\n?\d+\.\s/g, "<br>• ");
+
+  // Convert line breaks
+  text = text.replace(/\n/g, "<br>");
+
+  return text;
+}
+
+async function sendMessage(){
+
+  const input = document.getElementById("message");
+  const msg = input.value.trim();
+
+  if(msg === "") return;
+
+  const chatbox = document.getElementById("chatbox");
+
+  // USER MESSAGE
+  chatbox.innerHTML += `
+    <div class="message user">
+      <div class="avatar">You</div>
+      <div class="bubble">${msg}</div>
+    </div>
+  `;
+
+  input.value = "";
+
+  // 🔄 Typing loader
+  const loadingId = "loading-" + Date.now();
+
+  chatbox.innerHTML += `
+    <div class="message ai" id="${loadingId}">
+      <div class="avatar">AI</div>
+      <div class="bubble">Typing...</div>
+    </div>
+  `;
+
+  chatbox.scrollTop = chatbox.scrollHeight;
+
+  // SEND REQUEST
+  const res = await fetch("/chat",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({message:msg})
+  });
+
+  const data = await res.json();
+
+  // REMOVE LOADER
+  document.getElementById(loadingId).remove();
+
+  // FORMAT RESPONSE ✨
+  const formattedReply = formatAIResponse(data.reply);
+
+  // AI RESPONSE
+  chatbox.innerHTML += `
+    <div class="message ai">
+      <div class="avatar">AI</div>
+      <div class="bubble">${formattedReply}</div>
+    </div>
+  `;
+
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+// ENTER KEY SUPPORT
+document.getElementById("message").addEventListener("keydown", function(e){
+  if(e.key === "Enter") sendMessage();
+});
 
 </script>
 
