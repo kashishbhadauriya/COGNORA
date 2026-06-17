@@ -82,7 +82,7 @@
       let cur = null;
       const qReg   = /^(?:Q\s*(\d+)[.):]?\s*|(\d+)[.)]\s*)(.+)/i;
       const optReg = /^([A-D])[.)]\s*(.+)/i;
-      const ansReg = /^(?:answer|ans)[:\s]+([A-D])/i;
+      const ansReg =/^(?:correct answer|answer|ans)[:\s]+([A-D])/i;
       const expReg = /^(?:explanation|note)[:\s]+(.+)/i;
 
       lines.forEach(line => {
@@ -101,7 +101,6 @@
     <div class="quiz-header">
       <div class="quiz-header-left">
         <h1>Generated <span>Quiz</span></h1>
-        <p>Review each question — click "Show Answer" to reveal.</p>
       </div>
       <% if(parsed){ %>
       <div class="quiz-meta">
@@ -112,6 +111,7 @@
       </div>
       <% } %>
       <button class="copy-btn" onclick="copyQuiz()">⎘ Copy All</button>
+      
     </div>
 
     <% if(parsed){ %>
@@ -133,12 +133,24 @@
           <% }); %>
         </div>
         <% } %>
-        <% if(q.answer){ %>
-        <div class="q-answer" id="ans-<%= i %>">
-          <strong>✓ Answer: <%= q.answer %></strong>
-          <% if(q.explanation){ %><%= q.explanation %><% } %>
-        </div>
-        <% } %>
+      <% if(q.answer){ %>
+
+
+
+<div
+  class="q-answer"
+  id="ans-<%= i %>"
+  style="display:none;margin-top:10px;"
+>
+  <strong>✓ Correct Answer: <%= q.answer %></strong>
+
+  <% if(q.explanation){ %>
+    <br><br>
+    <%= q.explanation %>
+  <% } %>
+</div>
+
+<% } %>
       </div>
       <% }); %>
     </div>
@@ -190,11 +202,17 @@
   });
 
   /* ── Reveal answer ── */
-  function revealAns(i, btn){
-    const el = document.getElementById('ans-' + i);
-    el.classList.toggle('open');
-    btn.textContent = el.classList.contains('open') ? '🙈 Hide Answer' : '👁 Show Answer';
+function revealAns(i, btn){
+  const el = document.getElementById('ans-' + i);
+
+  if(el.style.display === "none"){
+    el.style.display = "block";
+    btn.textContent = "🙈 Hide Answer";
+  } else {
+    el.style.display = "none";
+    btn.textContent = "👁 Show Answer";
   }
+}
 
   /* ── Copy quiz ── */
   function copyQuiz(){
