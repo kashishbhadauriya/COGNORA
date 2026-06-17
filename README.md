@@ -3,7 +3,7 @@
 Cognora is an AI-powered study platform designed to help students learn smarter and faster. It allows users to upload study materials, convert files, and generate AI-powered summaries and quizzes.
 
 🔗 Live Demo:
-https://cognora-xi.vercel.app/
+https://cognora-ai-sepia.vercel.app
 
 🚀 Features
 🤖 AI-Powered Study Assistant
